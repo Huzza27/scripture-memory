@@ -1,0 +1,77 @@
+# Mobile App .gitignore (React Native + Expo)
+
+# Expo
+.expo/
+.expo-shared/
+dist/
+web-build/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Metro bundler
+.metro-health-check*
+
+# Native builds
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# iOS
+ios/Pods/
+ios/build/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.xcuserstate
+project.xcworkspace
+
+# Android
+android/app/build/
+android/build/
+android/.gradle/
+android/captures/
+android/app/release/
+*.apk
+*.aab
+local.properties
+
+# macOS
+.DS_Store
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Watchman
+.watchmanconfig
+
+# Debug
+.vscode/
+.idea/
+
+# Testing
+coverage/
+.nyc_output/
