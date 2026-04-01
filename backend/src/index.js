@@ -5,15 +5,31 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: {
+    error: {
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'Too many requests, please try again later.'
+    }
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
 
 // Middleware
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/api/', limiter); // Apply rate limiting to all API routes
 
 // Basic health check
 app.get('/health', (req, res) => {
@@ -39,16 +55,16 @@ app.get('/api/v1', (req, res) => {
   });
 });
 
-// TODO: Import and mount route modules
+// Import and mount route modules
+const bibleRoutes = require('./routes/bible');
+const songRoutes = require('./routes/songs');
 // const authRoutes = require('./routes/auth');
-// const bibleRoutes = require('./routes/bible');
-// const songRoutes = require('./routes/songs');
 // const libraryRoutes = require('./routes/library');
 // const progressRoutes = require('./routes/progress');
 
+app.use('/api/v1/bible', bibleRoutes);
+app.use('/api/v1/songs', songRoutes);
 // app.use('/api/v1/auth', authRoutes);
-// app.use('/api/v1/bible', bibleRoutes);
-// app.use('/api/v1/songs', songRoutes);
 // app.use('/api/v1/library', libraryRoutes);
 // app.use('/api/v1/progress', progressRoutes);
 

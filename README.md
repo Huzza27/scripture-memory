@@ -1,57 +1,30 @@
-# Scripture Memory App
+# Scripture Memory
 
-**Bible Verse Memorization with AI Song Generator**
+Bible verse memorization app — AI generates worship songs from verses to aid memorization.
 
-![Status](https://img.shields.io/badge/status-in%20development-yellow)
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
-
----
-
-## Overview
-
-Scripture Memory is a mobile app that helps users memorize Bible verses by generating custom melodies and songs from any verse, passage, or chapter. By combining music with scripture, memorization becomes easier, faster, and more engaging.
-
-**Core Concept:**
-1. User selects a Bible verse
-2. AI generates a custom melody with the verse as lyrics
-3. User listens, practices, and memorizes through music
-
----
-
-## Features
-
-### MVP Features
-- **Verse Search:** Search by reference, browse chapters, or paste custom text
-- **AI Song Generation:** Converts any verse into a singable melody
-- **Audio Player:** Play, pause, loop, adjust tempo, download songs
-- **Memorization Tools:** Hide-word mode, flashcards, spaced repetition
-- **Progress Tracking:** Streaks, memory scores, review scheduling
-
-### Future Features
-- Multiple musical styles (hymn, pop, children's song, etc.)
-- Verse-of-the-day songs
-- Social sharing
-- Offline mode
-- Multi-language support
+**Status:** v0.1.0 | Phase 1 ✅ Complete | Phase 2 (AI songs) in progress
 
 ---
 
 ## Tech Stack
 
-**Frontend:**
-- React Native + Expo
-- State: Zustand/Recoil
-- UI: React Native Paper
+**Frontend:** React Native + Expo SDK 54, Expo Router, TypeScript
+**Backend:** Node.js + Express (port 3000)
+**Storage:** AsyncStorage (local, max 10 verses)
+**AI:** ElevenLabs Music API (song generation)
+**Bible Data:** bible-api.com (KJV, NIV, ESV, NKJV)
 
-**Backend:**
-- Node.js (Express) or Python (FastAPI)
-- Database: PostgreSQL/MongoDB
-- Storage: AWS S3/Cloudinary
+---
 
-**AI/ML:**
-- Custom melody generation algorithm
-- Text-to-speech or AI singing synthesis
-- Bible API integration (KJV/ESV)
+## What Works Now
+
+- Add verse via book/chapter/verse picker (3-step bottom-sheet modal, fully offline navigation)
+- Search verses by reference (e.g. "John 3:16") via Search tab
+- Translation picker (KJV, NIV, ESV, NKJV)
+- Save up to 10 verses (AsyncStorage)
+- Delete saved verses
+- Radial FAB menu on home screen (Verse, Passage, Folder)
+- Backend generates AI worship songs via ElevenLabs (~12s, MP3)
 
 ---
 
@@ -59,85 +32,23 @@ Scripture Memory is a mobile app that helps users memorize Bible verses by gener
 
 ```
 scripture-memory/
-├── mobile/           # React Native app
-├── backend/          # API server
-├── docs/             # Documentation
-├── DEV_PLAN.md       # Development roadmap
-└── README.md         # This file
-```
-
-See [DEV_PLAN.md](./DEV_PLAN.md) for full development roadmap.
-
----
-
-## Getting Started
-
-See [SETUP.md](./docs/SETUP.md) for detailed setup instructions.
-
-### Quick Start
-
-**Prerequisites:**
-- Node.js 18+
-- npm or yarn
-- Expo CLI
-- (Backend: Python 3.10+ or Node.js 18+)
-
-**Clone & Install:**
-```bash
-# Clone repository
-git clone <repo-url>
-cd scripture-memory
-
-# Install mobile dependencies
-cd mobile
-npm install
-
-# Install backend dependencies
-cd ../backend
-npm install  # or: pip install -r requirements.txt
-```
-
-**Run Development:**
-```bash
-# Terminal 1: Start backend
-cd backend
-npm run dev  # or: python main.py
-
-# Terminal 2: Start mobile app
-cd mobile
-npx expo start
+├── mobile/                  # React Native app (Expo SDK 54)
+│   ├── app/                 # Screens (Expo Router)
+│   ├── api/                 # API client (bibleApi.ts)
+│   ├── components/          # AddVerseModal, TranslationPicker
+│   └── utils/               # storage.ts, preferences.ts, bibleData.ts
+├── backend/                 # Node.js + Express API
+│   └── src/
+│       ├── routes/          # bible.js, songs.js
+│       └── services/        # bibleService.js, elevenLabsService.js
+└── docs/                    # Documentation
 ```
 
 ---
 
-## Development Status
+## Docs
 
-**Current Phase:** Phase 1 — Core Infrastructure
-
-See [DEV_PLAN.md](./DEV_PLAN.md) for:
-- Detailed feature specifications
-- 5-phase development roadmap
-- Database schema
-- API documentation
-
----
-
-## Contributing
-
-(Coming soon)
-
----
-
-## License
-
-(To be determined)
-
----
-
-## Contact
-
-Project Lead: [Your contact info]
-
----
-
-**Built with faith, code, and music.**
+- [SETUP.md](./docs/SETUP.md) — Run the app locally
+- [DEV_PLAN.md](./docs/DEV_PLAN.md) — Roadmap
+- [API.md](./docs/API.md) — Backend API reference
+- [ELEVENLABS_INTEGRATION.md](./docs/ELEVENLABS_INTEGRATION.md) — Song generation details

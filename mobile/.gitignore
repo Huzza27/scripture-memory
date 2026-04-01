@@ -1,77 +1,43 @@
-# Mobile App .gitignore (React Native + Expo)
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+node_modules/
 
 # Expo
 .expo/
-.expo-shared/
 dist/
 web-build/
+expo-env.d.ts
 
-# Node
-node_modules/
-npm-debug.log
-yarn-error.log
-
-# Environment
-.env
-.env.local
-.env.*.local
-
-# Metro bundler
-.metro-health-check*
-
-# Native builds
+# Native
+.kotlin/
+*.orig.*
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
-*.orig.*
 
-# iOS
-ios/Pods/
-ios/build/
-*.pbxuser
-!default.pbxuser
-*.mode1v3
-!default.mode1v3
-*.mode2v3
-!default.mode2v3
-*.perspectivev3
-!default.perspectivev3
-xcuserdata
-*.xccheckout
-*.moved-aside
-DerivedData
-*.hmap
-*.ipa
-*.xcuserstate
-project.xcworkspace
+# Metro
+.metro-health-check*
 
-# Android
-android/app/build/
-android/build/
-android/.gradle/
-android/captures/
-android/app/release/
-*.apk
-*.aab
-local.properties
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
 
 # macOS
 .DS_Store
+*.pem
 
-# Temporary files
-*.tmp
-*.temp
-.cache/
+# local env files
+.env*.local
 
-# Watchman
-.watchmanconfig
+# typescript
+*.tsbuildinfo
 
-# Debug
-.vscode/
-.idea/
+app-example
 
-# Testing
-coverage/
-.nyc_output/
+# generated native folders
+/ios
+/android
