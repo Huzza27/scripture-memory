@@ -4,10 +4,12 @@ const PREFERENCES_KEY = '@app_preferences';
 
 export interface AppPreferences {
   defaultTranslation: string;
+  hideVerseText: boolean;
 }
 
-const DEFAULT_PREFERENCES: AppPreferences = {
+export const DEFAULT_PREFERENCES: AppPreferences = {
   defaultTranslation: 'kjv',
+  hideVerseText: false,
 };
 
 /**
@@ -45,6 +47,28 @@ export async function setDefaultTranslation(code: string): Promise<void> {
     await AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
   } catch (error) {
     console.error('Error saving default translation:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get hideVerseText preference
+ */
+export async function getHideVerseText(): Promise<boolean> {
+  const preferences = await getPreferences();
+  return preferences.hideVerseText;
+}
+
+/**
+ * Set hideVerseText preference
+ */
+export async function setHideVerseText(value: boolean): Promise<void> {
+  try {
+    const preferences = await getPreferences();
+    preferences.hideVerseText = value;
+    await AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
+  } catch (error) {
+    console.error('Error saving hideVerseText:', error);
     throw error;
   }
 }

@@ -1,10 +1,15 @@
 import { useState, useEffect } from "react";
-import { Text, View, StyleSheet, ActivityIndicator } from "react-native";
+import { Text, View, ActivityIndicator, Switch } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import TranslationPicker from "../components/TranslationPicker";
-import { getDefaultTranslation, setDefaultTranslation } from "../utils/preferences";
+import ScreenHeader from "../components/ScreenHeader";
+import { useTheme } from "../utils/theme";
+import { getDefaultTranslation, setDefaultTranslation, setHideVerseText } from "../utils/preferences";
+import { usePreferences } from "../context/PreferencesContext";
 
 export default function Settings() {
+  const theme = useTheme();
+  const { prefs, refresh } = usePreferences();
   const [defaultTranslation, setDefaultTranslationState] = useState<string>('kjv');
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
@@ -28,8 +33,7 @@ export default function Settings() {
     try {
       setDefaultTranslationState(code);
       await setDefaultTranslation(code);
-
-      // Show saved indicator briefly
+      await refresh();
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (error) {
@@ -37,25 +41,31 @@ export default function Settings() {
     }
   };
 
+  const handleHideVerseTextToggle = async (value: boolean) => {
+    try {
+      await setHideVerseText(value);
+      await refresh();
+    } catch (error) {
+      console.error("Error saving hideVerseText:", error);
+    }
+  };
+
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
+      <View className="flex-1 items-center justify-center" style={{ backgroundColor: theme.background }}>
+        <ActivityIndicator size="large" color="#007AFF" />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Settings</Text>
-        <Text style={styles.subtitle}>App Preferences</Text>
-      </View>
+    <View className="flex-1" style={{ backgroundColor: theme.background }}>
+      <ScreenHeader title="Settings" subtitle="App Preferences" />
 
-      <View style={styles.content}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Default Translation</Text>
-          <Text style={styles.sectionDescription}>
+      <View className="p-5 flex-1">
+        <View className="mb-8">
+          <Text className="text-lg font-semibold mb-2" style={{ color: theme.text }}>Default Translation</Text>
+          <Text className="text-sm leading-5 mb-4" style={{ color: theme.textSecondary }}>
             Choose your preferred Bible translation. This will be used by default when searching for verses.
           </Text>
 
@@ -65,72 +75,35 @@ export default function Settings() {
           />
 
           {saved && (
-            <View style={styles.savedIndicator}>
-              <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-              <Text style={styles.savedText}>Saved!</Text>
+            <View className="flex-row items-center mt-3 gap-2">
+              <Ionicons name="checkmark-circle" size={20} color={theme.green} />
+              <Text className="text-sm font-semibold" style={{ color: theme.green }}>Saved!</Text>
             </View>
           )}
+        </View>
+
+        <View className="mb-8">
+          <Text className="text-lg font-semibold mb-2" style={{ color: theme.text }}>Memorization Mode</Text>
+          <Text className="text-sm leading-5 mb-4" style={{ color: theme.textSecondary }}>
+            Hide verse text throughout the app so you can test yourself without accidentally seeing the words.
+          </Text>
+          <View
+            className="flex-row items-center justify-between rounded-xl p-3.5 border"
+            style={{ backgroundColor: theme.surface, borderColor: theme.border }}
+          >
+            <View className="flex-row items-center gap-2.5">
+              <Ionicons name="eye-off-outline" size={20} color={theme.textSecondary} />
+              <Text className="text-base font-semibold" style={{ color: theme.text }}>Hide verse text</Text>
+            </View>
+            <Switch
+              value={prefs.hideVerseText}
+              onValueChange={handleHideVerseTextToggle}
+              trackColor={{ false: theme.border, true: theme.accent }}
+              thumbColor="#fff"
+            />
+          </View>
         </View>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    backgroundColor: "#f9f9f9",
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#666",
-  },
-  content: {
-    padding: 20,
-    flex: 1,
-  },
-  section: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 8,
-  },
-  sectionDescription: {
-    fontSize: 14,
-    color: "#666",
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-  loader: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  savedIndicator: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 12,
-    gap: 8,
-  },
-  savedText: {
-    fontSize: 14,
-    color: "#4CAF50",
-    fontWeight: "600",
-  },
-});

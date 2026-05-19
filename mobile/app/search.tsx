@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Text, View, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet, ScrollView, Alert } from "react-native";
+import { Text, View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Alert } from "react-native";
 import bibleApi from "../api/bibleApi";
 import { verseStorage } from "../utils/storage";
 import { Ionicons } from "@expo/vector-icons";
@@ -116,13 +116,13 @@ export default function Search() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Search Verses</Text>
-        <Text style={styles.subtitle}>Enter a Bible reference</Text>
+    <View className="flex-1 bg-white">
+      <View className="pt-16 px-5 pb-5 bg-[#f9f9f9] border-b border-[#eee]">
+        <Text className="text-3xl font-bold mb-1">Search Verses</Text>
+        <Text className="text-sm text-[#666]">Enter a Bible reference</Text>
       </View>
 
-      <View style={styles.content}>
+      <View className="p-5 flex-1">
         <TranslationPicker
           selectedTranslation={selectedTranslation}
           onTranslationChange={setSelectedTranslation}
@@ -130,7 +130,7 @@ export default function Search() {
         />
 
         <TextInput
-          style={styles.input}
+          className="border border-[#ddd] rounded-lg p-3 text-base mb-4"
           placeholder="e.g., John 3:16"
           value={reference}
           onChangeText={setReference}
@@ -140,29 +140,29 @@ export default function Search() {
         />
 
         <TouchableOpacity
-          style={styles.button}
+          className="bg-[#007AFF] p-4 rounded-lg items-center"
           onPress={handleSearch}
           disabled={loading}
         >
-          <Text style={styles.buttonText}>
+          <Text className="text-white text-base font-semibold">
             {loading ? "Searching..." : "Search"}
           </Text>
         </TouchableOpacity>
 
-        {loading && <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />}
+        {loading && <ActivityIndicator size="large" color="#007AFF" className="mt-5" />}
 
         {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
+          <View className="mt-5 p-4 bg-[#fee] rounded-lg">
+            <Text className="text-[#c00] text-sm">{error}</Text>
           </View>
         )}
 
         {verseData && (
-          <ScrollView style={styles.resultContainer}>
-            <View style={styles.resultHeader}>
-              <Text style={styles.reference}>{verseData.reference}</Text>
+          <ScrollView className="mt-6 p-4 bg-[#f9f9f9] rounded-xl flex-1">
+            <View className="flex-row justify-between items-center mb-3">
+              <Text className="text-lg font-bold text-[#333] flex-1">{verseData.reference}</Text>
               <TouchableOpacity
-                style={[styles.saveButton, isSaved && styles.savedButton]}
+                className={`p-2${isSaved ? " opacity-50" : ""}`}
                 onPress={handleSave}
                 disabled={isSaved}
               >
@@ -173,18 +173,15 @@ export default function Search() {
                 />
               </TouchableOpacity>
             </View>
-            <Text style={styles.verseText}>{verseData.text}</Text>
-            <Text style={styles.translation}>
+            <Text className="text-base leading-6 text-[#333] mb-3">{verseData.text}</Text>
+            <Text className="text-xs text-[#666] italic">
               {verseData.translationName || verseData.translation.toUpperCase()}
             </Text>
 
             {/* Song Generation Section */}
-            <View style={styles.songSection}>
+            <View className="mt-6 pt-6 border-t border-[#ddd]">
               <TouchableOpacity
-                style={[
-                  styles.generateButton,
-                  generatingSong && styles.generateButtonDisabled,
-                ]}
+                className={`p-4 rounded-lg flex-row items-center justify-center${generatingSong ? " bg-[#ccc]" : " bg-[#FF9500]"}`}
                 onPress={handleGenerateSong}
                 disabled={generatingSong}
               >
@@ -194,26 +191,26 @@ export default function Search() {
                   color="#fff"
                   style={{ marginRight: 8 }}
                 />
-                <Text style={styles.generateButtonText}>
+                <Text className="text-white text-base font-semibold">
                   {generatingSong ? "Generating..." : "Generate Song"}
                 </Text>
               </TouchableOpacity>
 
               {generatingSong && (
-                <View style={styles.statusContainer}>
+                <View className="mt-4 flex-row items-center justify-center gap-2">
                   <ActivityIndicator size="small" color="#007AFF" />
-                  <Text style={styles.statusText}>{songStatus}</Text>
+                  <Text className="text-sm text-[#666]">{songStatus}</Text>
                 </View>
               )}
 
               {audioUrl && !generatingSong && (
-                <View style={styles.audioContainer}>
+                <View className="mt-4 p-4 bg-[#e8f5e9] rounded-lg items-center">
                   <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-                  <Text style={styles.audioReadyText}>Song ready!</Text>
-                  <Text style={styles.audioUrlText} numberOfLines={1}>
+                  <Text className="text-base font-semibold text-[#4CAF50] mt-2">Song ready!</Text>
+                  <Text className="text-xs text-[#666] mt-2" numberOfLines={1}>
                     {audioUrl}
                   </Text>
-                  <Text style={styles.noteText}>
+                  <Text className="text-[11px] text-[#999] mt-2 italic">
                     Note: Audio playback coming in Phase 3
                   </Text>
                 </View>
@@ -225,156 +222,3 @@ export default function Search() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    backgroundColor: "#f9f9f9",
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#666",
-  },
-  content: {
-    padding: 20,
-    flex: 1,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 16,
-  },
-  button: {
-    backgroundColor: "#007AFF",
-    padding: 16,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  loader: {
-    marginTop: 20,
-  },
-  errorContainer: {
-    marginTop: 20,
-    padding: 16,
-    backgroundColor: "#fee",
-    borderRadius: 8,
-  },
-  errorText: {
-    color: "#c00",
-    fontSize: 14,
-  },
-  resultContainer: {
-    marginTop: 24,
-    padding: 16,
-    backgroundColor: "#f9f9f9",
-    borderRadius: 12,
-    flex: 1,
-  },
-  resultHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  reference: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-    flex: 1,
-  },
-  saveButton: {
-    padding: 8,
-  },
-  savedButton: {
-    opacity: 0.5,
-  },
-  verseText: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: "#333",
-    marginBottom: 12,
-  },
-  translation: {
-    fontSize: 12,
-    color: "#666",
-    fontStyle: "italic",
-  },
-  songSection: {
-    marginTop: 24,
-    paddingTop: 24,
-    borderTopWidth: 1,
-    borderTopColor: "#ddd",
-  },
-  generateButton: {
-    backgroundColor: "#FF9500",
-    padding: 16,
-    borderRadius: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  generateButtonDisabled: {
-    backgroundColor: "#ccc",
-  },
-  generateButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  statusContainer: {
-    marginTop: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
-  statusText: {
-    fontSize: 14,
-    color: "#666",
-  },
-  audioContainer: {
-    marginTop: 16,
-    padding: 16,
-    backgroundColor: "#e8f5e9",
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  audioReadyText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#4CAF50",
-    marginTop: 8,
-  },
-  audioUrlText: {
-    fontSize: 12,
-    color: "#666",
-    marginTop: 8,
-  },
-  noteText: {
-    fontSize: 11,
-    color: "#999",
-    marginTop: 8,
-    fontStyle: "italic",
-  },
-});

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Audio, AVPlaybackStatus } from "expo-av";
 
@@ -77,26 +77,26 @@ export default function SongPlayer({ audioUri, reference, onClose }: SongPlayerP
   const progress = duration > 0 ? position / duration : 0;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{reference}</Text>
+    <View className="bg-[#f0f6ff] rounded-2xl p-4 mt-2 border border-[#cce0ff]">
+      <View className="flex-row justify-between items-center mb-3">
+        <Text className="text-sm font-semibold text-[#007AFF]">{reference}</Text>
         <TouchableOpacity onPress={onClose}>
           <Ionicons name="close" size={20} color="#666" />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.progressBar}>
-        <View style={[styles.progressFill, { flex: progress }]} />
-        <View style={[styles.progressEmpty, { flex: 1 - progress }]} />
+      <View className="flex-row h-1 rounded overflow-hidden mb-1">
+        <View className="bg-[#007AFF]" style={{ flex: progress }} />
+        <View className="bg-[#d0e4ff]" style={{ flex: 1 - progress }} />
       </View>
 
-      <View style={styles.timeRow}>
-        <Text style={styles.time}>{formatTime(position)}</Text>
-        <Text style={styles.time}>{formatTime(duration)}</Text>
+      <View className="flex-row justify-between mb-3">
+        <Text className="text-[11px] text-[#888]">{formatTime(position)}</Text>
+        <Text className="text-[11px] text-[#888]">{formatTime(duration)}</Text>
       </View>
 
-      <View style={styles.controls}>
-        <TouchableOpacity onPress={toggleLoop} style={styles.controlBtn}>
+      <View className="flex-row items-center justify-center gap-4">
+        <TouchableOpacity onPress={toggleLoop} className="p-2">
           <Ionicons
             name="repeat"
             size={22}
@@ -104,11 +104,15 @@ export default function SongPlayer({ audioUri, reference, onClose }: SongPlayerP
           />
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={restart} style={styles.controlBtn}>
+        <TouchableOpacity onPress={restart} className="p-2">
           <Ionicons name="play-skip-back" size={22} color="#333" />
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={togglePlayPause} style={styles.playBtn} disabled={!isLoaded}>
+        <TouchableOpacity
+          onPress={togglePlayPause}
+          className="w-[52px] h-[52px] rounded-full bg-[#007AFF] items-center justify-center"
+          disabled={!isLoaded}
+        >
           {!isLoaded ? (
             <ActivityIndicator color="#fff" />
           ) : (
@@ -119,64 +123,3 @@ export default function SongPlayer({ audioUri, reference, onClose }: SongPlayerP
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#f0f6ff",
-    borderRadius: 16,
-    padding: 16,
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: "#cce0ff",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#007AFF",
-  },
-  progressBar: {
-    flexDirection: "row",
-    height: 4,
-    borderRadius: 2,
-    overflow: "hidden",
-    marginBottom: 4,
-  },
-  progressFill: {
-    backgroundColor: "#007AFF",
-  },
-  progressEmpty: {
-    backgroundColor: "#d0e4ff",
-  },
-  timeRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 12,
-  },
-  time: {
-    fontSize: 11,
-    color: "#888",
-  },
-  controls: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 16,
-  },
-  controlBtn: {
-    padding: 8,
-  },
-  playBtn: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: "#007AFF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

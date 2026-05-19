@@ -26,7 +26,13 @@ const limiter = rateLimit({
 
 // Middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+    : true, // open in dev (no ALLOWED_ORIGINS set)
+  methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/', limiter); // Apply rate limiting to all API routes
@@ -58,15 +64,13 @@ app.get('/api/v1', (req, res) => {
 // Import and mount route modules
 const bibleRoutes = require('./routes/bible');
 const songRoutes = require('./routes/songs');
-// const authRoutes = require('./routes/auth');
-// const libraryRoutes = require('./routes/library');
-// const progressRoutes = require('./routes/progress');
+const authRoutes = require('./routes/auth');
+const syncRoutes = require('./routes/sync');
 
 app.use('/api/v1/bible', bibleRoutes);
 app.use('/api/v1/songs', songRoutes);
-// app.use('/api/v1/auth', authRoutes);
-// app.use('/api/v1/library', libraryRoutes);
-// app.use('/api/v1/progress', progressRoutes);
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/sync', syncRoutes);
 
 // 404 handler
 app.use((req, res) => {

@@ -1,7 +1,7 @@
 # Development Plan — Scripture Memory
 
 **Last Updated:** April 2026
-**Current:** Phase 4 in progress
+**Current:** Phase 5 in progress
 
 ---
 
@@ -53,48 +53,59 @@
 
 ---
 
-### Phase 4 — Memory Testing System ⏳ IN PROGRESS
-Full spec: `docs/MEMORY_TESTING_SYSTEM.md`
+### Phase 4 — Memory Testing System ✅ CORE COMPLETE (Apr 2026)
+Full spec: `docs/MEMORY_TESTING_SYSTEM.md` | UI spec: `docs/UI_SPEC.md`
 
 **Built:**
 - ✅ `utils/recallUtils.ts` — tokenizer, first-letter validator, accuracy scorer
-- ✅ `app/practice.tsx` — Practice tab with Stage 1 recall (select → practice → result)
-- ✅ Word-by-word result breakdown with color coding
-- ✅ Shake animation on incorrect answers
+- ✅ `app/verse/[id].tsx` — 3-round session (full → partial → blind), reference check after each round, per-round results
+- ✅ `app/flashcards/[id].tsx` — folder flashcard session (Type A + B, flip animation, scoring)
+- ✅ `app/practice.tsx` — standalone Practice tab (verse select → first-letter recall → result)
+- ✅ Stage progression: 90% accuracy × 2 sessions → advance stage, streak tracking
+- ✅ Progress persistence (AsyncStorage via `progressStorage`)
+- ✅ Folder system: create, edit, delete, add/remove verses, long-press context menu
+- ✅ Verse Practice Menu: tap verse → bottom sheet (Practice / View / Edit / Delete)
+- ✅ Word-by-word result breakdown, shake animation on wrong answers
+
+**Also built (Apr 2026):**
+- ✅ Drag-to-folder on home screen (`VerseCard` + `PanResponder`, ghost card, hover highlight)
+- ✅ `AddPassageModal` — 4-step range picker (Book → Chapter → Start → End verse)
+- ✅ Dynamic duration formula — `calcDuration()` scales songs 25–38s by word count
+
+**Also built (Apr 2026):**
+- ✅ Unit test suite — 126 tests across mobile + backend (see TASKS.md for details)
+  - Mobile: `jest-expo`, tests for `recallUtils`, `bibleData`, `storage` (99 tests)
+  - Backend: `jest` + `supertest`, tests for `calcDuration`, `bible` routes (27 tests)
+  - Run: `npm test` in `mobile/` or `backend/`
 
 **Remaining:**
-- [ ] Stage 2: partial word hiding (40–70%)
-- [ ] Stage 3: full verse hidden, reference only
-- [ ] Stage progression logic (90% accuracy × 2 → advance)
-- [ ] Flashcard mode (A + B)
-- [ ] Spaced repetition
-- [ ] Progress persistence (AsyncStorage)
-
-**Progressive Recall (3 stages):**
-- Stage 1: Full verse visible, user types first letter of each word
-- Stage 2: 40–70% of words hidden, first-letter input with hints
-- Stage 3: Verse fully hidden, reference only shown
-
-**Flashcards:**
-- Mode A: Reference → Verse recall
-- Mode B: Verse → Reference recall
-- Spaced repetition (again/hard/good/easy → 10min/6hr/1day/3day intervals)
-
-**Song Integration:**
-- Passive playback during review
-- Fill-in-the-lyric mode (audio plays with gap, user inputs first letter)
-- Rhythm recall mode
-
-**Scoring:** accuracy = correct_letters / total_words + streaks + speed bonuses
-
-**MVP order:** Stage 1–3 recall → flashcards → basic scoring → song playback → lyric-fill → spaced repetition
+- [ ] Spaced repetition intervals (again/hard/good/easy)
+- [ ] Song passive playback during review
+- [ ] Drag verse out of folder detail screen (cross-screen drag, deferred)
 
 ---
 
-### Phase 5 — Accounts & Persistence
-- User authentication (JWT or Firebase)
-- Cloud storage for generated songs
-- Progress tracking (memory score, streaks, spaced repetition)
+### Phase 5 — Accounts & Persistence ✅ CORE COMPLETE (Apr 2026)
+
+**Built:**
+- ✅ JWT auth — `POST /api/v1/auth/register`, `POST /api/v1/auth/login`, `GET /api/v1/auth/me`
+- ✅ Supabase (PostgreSQL) — hosted DB, session pooler, schema applied
+- ✅ Sync routes — verses, folders, progress, streak (CRUD + bulk import)
+- ✅ `AuthContext` — token persisted via SecureStore (native) / AsyncStorage (web)
+- ✅ Auth gate in `_layout.tsx` — redirects to `/login` if not signed in
+- ✅ Login/register screen (`app/login.tsx`) — combined screen, toggle between modes
+- ✅ First-login migration modal — prompts user to import local verses to account
+- ✅ `bibleApi.ts` — `setToken()`, auth headers on all sync calls
+
+**Stack decisions:**
+- Auth: JWT (self-contained, no native modules, works with Expo Go)
+- DB: Supabase (free hosted Postgres, session pooler for IPv4)
+- Web fallback: AsyncStorage instead of SecureStore on web platform
+
+**Remaining:**
+- [x] Wire verse/folder/progress/streak writes to sync endpoints — write-through in `storage.ts` via `fireSync()` (Apr 2026)
+- [x] Pull cloud data on login — `pullFromCloud()` in `utils/cloudPull.ts`, triggered from `MigrateGate` on login (Apr 2026)
+- [ ] Spaced repetition scheduling
 
 ---
 
@@ -112,7 +123,7 @@ Full spec: `docs/MEMORY_TESTING_SYSTEM.md`
 | Bible API | bible-api.com | Free, multi-translation |
 | AI music | ElevenLabs | High vocal quality, simple REST API |
 | Storage | AsyncStorage (Phase 1-2) | No backend DB needed yet |
-| Auth | Deferred to Phase 4 | Not needed for core loop |
+| Auth | JWT + Supabase | No native modules needed, works with Expo Go, free hosted DB |
 
 ---
 

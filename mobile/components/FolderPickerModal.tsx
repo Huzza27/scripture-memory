@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Modal, StyleSheet, FlatList } from "react-native";
+import { View, Text, TouchableOpacity, Modal, FlatList } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { folderStorage, Folder } from "../utils/storage";
 
@@ -37,24 +37,24 @@ export default function FolderPickerModal({ visible, verseId, onClose, onChange 
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
-      <View style={styles.sheet}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Add to Folder</Text>
+      <TouchableOpacity className="absolute inset-0" style={{ backgroundColor: "rgba(0,0,0,0.4)" }} activeOpacity={1} onPress={onClose} />
+      <View className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[20px] p-6 pb-10" style={{ maxHeight: "60%" }}>
+        <View className="flex-row justify-between items-center mb-4">
+          <Text className="text-[17px] font-bold">Add to Folder</Text>
           <TouchableOpacity onPress={onClose}>
             <Ionicons name="close" size={20} color="#666" />
           </TouchableOpacity>
         </View>
         {folders.length === 0 ? (
-          <Text style={styles.empty}>No folders yet. Create one from the home screen.</Text>
+          <Text className="text-[#aaa] text-sm text-center py-5">No folders yet. Create one from the home screen.</Text>
         ) : (
           <FlatList
             data={folders}
             keyExtractor={f => f.id}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.row} onPress={() => toggle(item.id)}>
-                <View style={[styles.dot, { backgroundColor: item.color }]} />
-                <Text style={styles.folderName}>{item.name}</Text>
+              <TouchableOpacity className="flex-row items-center py-[14px] border-b border-[#f0f0f0]" onPress={() => toggle(item.id)}>
+                <View className="w-[14px] h-[14px] rounded-full mr-3" style={{ backgroundColor: item.color }} />
+                <Text className="flex-1 text-[15px] text-[#222]">{item.name}</Text>
                 <Ionicons
                   name={memberIds.has(item.id) ? "checkbox" : "square-outline"}
                   size={22}
@@ -68,18 +68,3 @@ export default function FolderPickerModal({ visible, verseId, onClose, onChange 
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.4)" },
-  sheet: {
-    position: "absolute", bottom: 0, left: 0, right: 0,
-    backgroundColor: "#fff", borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    padding: 24, paddingBottom: 40, maxHeight: "60%",
-  },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
-  title: { fontSize: 17, fontWeight: "700" },
-  empty: { color: "#aaa", fontSize: 14, textAlign: "center", paddingVertical: 20 },
-  row: { flexDirection: "row", alignItems: "center", paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: "#f0f0f0" },
-  dot: { width: 14, height: 14, borderRadius: 7, marginRight: 12 },
-  folderName: { flex: 1, fontSize: 15, color: "#222" },
-});

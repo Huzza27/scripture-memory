@@ -1,7 +1,10 @@
 // Song Generation Routes
 const express = require('express');
+const { body, param } = require('express-validator');
 const router = express.Router();
 const elevenLabsService = require('../services/elevenLabsService');
+const { calcDuration } = elevenLabsService;
+const { validate } = require('../middleware/validate');
 
 // In-memory cache for generated songs (replace with database later)
 const songCache = new Map();
@@ -20,19 +23,14 @@ const songCache = new Map();
  * Response:
  * Binary audio file (MP3)
  */
-router.post('/generate', async (req, res) => {
-  const { verse, reference, style } = req.body;
+const generateRules = [
+  body('verse').isString().trim().notEmpty().withMessage('verse is required').isLength({ max: 2000 }).withMessage('verse too long'),
+  body('reference').isString().trim().notEmpty().withMessage('reference is required').isLength({ max: 200 }).withMessage('reference too long'),
+  body('style').optional().isString().trim().isLength({ max: 100 }).withMessage('style too long'),
+];
 
-  // Validation
-  if (!verse || !reference) {
-    return res.status(400).json({
-      success: false,
-      error: {
-        code: 'MISSING_FIELDS',
-        message: 'Both verse and reference are required'
-      }
-    });
-  }
+router.post('/generate', generateRules, validate, async (req, res) => {
+  const { verse, reference, style } = req.body;
 
   // Check cache first (avoid regenerating same verse)
   const cacheKey = `${reference}:${style || 'default'}`;
@@ -45,11 +43,12 @@ router.post('/generate', async (req, res) => {
   }
 
   try {
-    console.log(`🎵 Generating song for ${reference}...`);
+    const duration = calcDuration(verse);
+    console.log(`🎵 Generating song for ${reference} (${duration}s, ${verse.trim().split(/\s+/).length} words)...`);
     const audioBuffer = await elevenLabsService.generateMusic(
       verse,
       style || 'gentle worship',
-      25 // duration in seconds
+      duration
     );
 
     // Store in cache

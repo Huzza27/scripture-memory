@@ -7,6 +7,19 @@ const ELEVEN_API_KEY = process.env.ELEVEN_API_KEY;
 const BASE_URL = 'https://api.elevenlabs.io/v1';
 
 /**
+ * Calculate song duration based on passage length.
+ * ~1.5s per word, clamped to [25, 38] seconds.
+ * 25s = safe minimum (ElevenLabs defaults shorter if unset)
+ * 38s = safe maximum (45s+ causes degraded, unfocused output)
+ * @param {string} text
+ * @returns {number} duration in seconds
+ */
+function calcDuration(text) {
+  const wordCount = text.trim().split(/\s+/).length;
+  return Math.min(38, Math.max(25, Math.round(wordCount * 1.5)));
+}
+
+/**
  * Generate a song from verse text using Eleven Labs Music API
  * @param {string} verseText - The Bible verse text
  * @param {string} style - Music style (default: 'gentle worship')
@@ -116,5 +129,6 @@ async function downloadAudio(url, filename) {
 module.exports = {
   generateMusic,
   checkJobStatus,
-  downloadAudio
+  downloadAudio,
+  calcDuration
 };

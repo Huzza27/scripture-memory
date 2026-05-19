@@ -1,4 +1,4 @@
-import { Modal, View, Text, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView } from "react-native";
+import { Modal, View, Text, TouchableOpacity, ScrollView, SafeAreaView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 export interface BibleBook {
@@ -86,10 +86,14 @@ interface Props {
 
 function BookGrid({ books, onSelect }: { books: BibleBook[]; onSelect: (b: BibleBook) => void }) {
   return (
-    <View style={styles.grid}>
+    <View className="flex-row flex-wrap gap-2 mb-4">
       {books.map((book) => (
-        <TouchableOpacity key={book.full} style={styles.bookButton} onPress={() => onSelect(book)}>
-          <Text style={styles.bookAbbr}>{book.abbr}</Text>
+        <TouchableOpacity
+          key={book.full}
+          className="w-16 h-16 rounded-[14px] bg-[#f0f4ff] items-center justify-center border border-[#d0dcf5]"
+          onPress={() => onSelect(book)}
+        >
+          <Text className="text-[13px] font-bold text-[#2255cc]">{book.abbr}</Text>
         </TouchableOpacity>
       ))}
     </View>
@@ -99,20 +103,20 @@ function BookGrid({ books, onSelect }: { books: BibleBook[]; onSelect: (b: Bible
 export default function BookPickerModal({ visible, onClose, onSelectBook }: Props) {
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
-        <View style={styles.sheet}>
-          <SafeAreaView style={{ flex: 1 }}>
-            <View style={styles.header}>
-              <Text style={styles.title}>Select a Book</Text>
-              <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+      <View className="flex-1 justify-end">
+        <TouchableOpacity className="absolute inset-0" style={{ backgroundColor: "rgba(0,0,0,0.4)" }} activeOpacity={1} onPress={onClose} />
+        <View className="bg-white rounded-t-[20px] pb-4" style={{ maxHeight: "85%" }}>
+          <SafeAreaView className="flex-1">
+            <View className="flex-row items-center justify-between px-5 pt-5 pb-3 border-b border-[#eee]">
+              <Text className="text-lg font-bold text-[#333]">Select a Book</Text>
+              <TouchableOpacity onPress={onClose} className="p-1">
                 <Ionicons name="close" size={22} color="#555" />
               </TouchableOpacity>
             </View>
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-              <Text style={styles.sectionLabel}>Old Testament</Text>
+            <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
+              <Text className="text-xs font-bold text-[#999] tracking-widest uppercase mb-[10px] mt-2">Old Testament</Text>
               <BookGrid books={OT_BOOKS} onSelect={onSelectBook} />
-              <Text style={styles.sectionLabel}>New Testament</Text>
+              <Text className="text-xs font-bold text-[#999] tracking-widest uppercase mb-[10px] mt-2">New Testament</Text>
               <BookGrid books={NT_BOOKS} onSelect={onSelectBook} />
             </ScrollView>
           </SafeAreaView>
@@ -121,77 +125,3 @@ export default function BookPickerModal({ visible, onClose, onSelectBook }: Prop
     </Modal>
   );
 }
-
-const BUTTON_SIZE = 64;
-const GAP = 8;
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: "flex-end",
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.4)",
-  },
-  sheet: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: "85%",
-    paddingBottom: 16,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#333",
-  },
-  closeBtn: {
-    padding: 4,
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 32,
-  },
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#999",
-    letterSpacing: 1,
-    textTransform: "uppercase",
-    marginBottom: 10,
-    marginTop: 8,
-  },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: GAP,
-    marginBottom: 16,
-  },
-  bookButton: {
-    width: BUTTON_SIZE,
-    height: BUTTON_SIZE,
-    borderRadius: 14,
-    backgroundColor: "#f0f4ff",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#d0dcf5",
-  },
-  bookAbbr: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#2255cc",
-  },
-});

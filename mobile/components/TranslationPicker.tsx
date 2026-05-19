@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
 export interface Translation {
@@ -52,13 +52,13 @@ export default function TranslationPicker({
   label,
 }: TranslationPickerProps) {
   return (
-    <View style={styles.container}>
-      {label && <Text style={styles.label}>{label}</Text>}
-      <View style={styles.pickerContainer}>
+    <View className="mb-4">
+      {label && <Text className="text-sm font-semibold text-[#333] mb-2">{label}</Text>}
+      <View className="border border-[#ddd] rounded-lg bg-white overflow-hidden">
         <Picker
           selectedValue={selectedTranslation}
           onValueChange={onTranslationChange}
-          style={styles.picker}
+          style={{ height: 50 }}
         >
           {TRANSLATIONS.map(t => (
             <Picker.Item
@@ -72,25 +72,3 @@ export default function TranslationPicker({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-  },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    backgroundColor: '#fff',
-    overflow: 'hidden',
-  },
-  picker: {
-    height: 50,
-  },
-});

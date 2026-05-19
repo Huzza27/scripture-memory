@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet } from "react-native";
-import { FOLDER_COLORS } from "../utils/storage";
+import { View, Text, TextInput, TouchableOpacity, Modal } from "react-native";
+import { FOLDER_COLORS, FOLDER_COLOR_DEFAULT } from "../utils/storage";
+import { useTheme } from "../utils/theme";
 
 interface Props {
   visible: boolean;
@@ -9,80 +10,66 @@ interface Props {
 }
 
 export default function CreateFolderModal({ visible, onClose, onCreate }: Props) {
+  const theme = useTheme();
   const [name, setName] = useState("");
-  const [color, setColor] = useState(FOLDER_COLORS[4]);
+  const [color, setColor] = useState(FOLDER_COLOR_DEFAULT);
 
   const handleCreate = () => {
     if (!name.trim()) return;
     onCreate(name.trim(), color);
     setName("");
-    setColor(FOLDER_COLORS[4]);
+    setColor(FOLDER_COLOR_DEFAULT);
   };
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
-      <View style={styles.sheet}>
-        <Text style={styles.title}>New Folder</Text>
+      <TouchableOpacity className="absolute inset-0" style={{ backgroundColor: theme.overlay }} activeOpacity={1} onPress={onClose} />
+      <View className="absolute bottom-0 left-0 right-0 rounded-t-[20px] p-6 pb-10" style={{ backgroundColor: theme.sheetBg }}>
+        <Text className="text-lg font-bold mb-4" style={{ color: theme.text }}>New Folder</Text>
         <TextInput
-          style={styles.input}
+          className="border-[1.5px] rounded-xl p-3 text-base mb-5"
+          style={{ borderColor: theme.borderStrong, color: theme.text, backgroundColor: theme.background }}
           value={name}
           onChangeText={setName}
           placeholder="Folder name"
+          placeholderTextColor={theme.textTertiary}
           autoFocus
           returnKeyType="done"
           onSubmitEditing={handleCreate}
         />
-        <Text style={styles.colorLabel}>Color</Text>
-        <View style={styles.swatches}>
-          {FOLDER_COLORS.map(c => (
-            <TouchableOpacity
-              key={c}
-              style={[styles.swatch, { backgroundColor: c }, color === c && styles.swatchSelected]}
-              onPress={() => setColor(c)}
-            />
+        <Text className="text-[13px] font-semibold mb-[10px]" style={{ color: theme.textTertiary }}>Color</Text>
+        <View className="flex-row gap-[10px] mb-6">
+          {FOLDER_COLORS.map((c, i) => (
+            <View key={c} className="items-center gap-1">
+              <TouchableOpacity
+                className="w-8 h-8 rounded-full"
+                style={[{ backgroundColor: c }, color === c && { borderWidth: 3, borderColor: theme.text }]}
+                onPress={() => setColor(c)}
+              />
+              {i === 0 && (
+                <Text className="text-[9px] font-semibold uppercase tracking-[0.3px]" style={{ color: theme.textTertiary }}>Default</Text>
+              )}
+            </View>
           ))}
         </View>
-        <View style={styles.actions}>
-          <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
-            <Text style={styles.cancelText}>Cancel</Text>
+        <View className="flex-row gap-[10px]">
+          <TouchableOpacity
+            className="flex-1 border-[1.5px] rounded-xl p-[14px] items-center"
+            style={{ borderColor: theme.border }}
+            onPress={onClose}
+          >
+            <Text className="text-[15px] font-semibold" style={{ color: theme.textSecondary }}>Cancel</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.createBtn, !name.trim() && styles.createBtnDisabled]}
+            className="flex-1 rounded-xl p-[14px] items-center"
+            style={{ backgroundColor: !name.trim() ? theme.borderDisabled : theme.accent }}
             onPress={handleCreate}
             disabled={!name.trim()}
           >
-            <Text style={styles.createText}>Create</Text>
+            <Text className="text-white text-[15px] font-semibold">Create</Text>
           </TouchableOpacity>
         </View>
       </View>
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.4)" },
-  sheet: {
-    position: "absolute", bottom: 0, left: 0, right: 0,
-    backgroundColor: "#fff", borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    padding: 24, paddingBottom: 40,
-  },
-  title: { fontSize: 18, fontWeight: "700", marginBottom: 16 },
-  input: {
-    borderWidth: 1.5, borderColor: "#ddd", borderRadius: 12,
-    padding: 12, fontSize: 16, marginBottom: 20,
-  },
-  colorLabel: { fontSize: 13, fontWeight: "600", color: "#888", marginBottom: 10 },
-  swatches: { flexDirection: "row", gap: 10, marginBottom: 24 },
-  swatch: { width: 32, height: 32, borderRadius: 16 },
-  swatchSelected: { borderWidth: 3, borderColor: "#000" },
-  actions: { flexDirection: "row", gap: 10 },
-  cancelBtn: {
-    flex: 1, borderWidth: 1.5, borderColor: "#ddd",
-    borderRadius: 12, padding: 14, alignItems: "center",
-  },
-  cancelText: { color: "#555", fontSize: 15, fontWeight: "600" },
-  createBtn: { flex: 1, backgroundColor: "#007AFF", borderRadius: 12, padding: 14, alignItems: "center" },
-  createBtnDisabled: { backgroundColor: "#ccc" },
-  createText: { color: "#fff", fontSize: 15, fontWeight: "600" },
-});

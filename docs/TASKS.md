@@ -4,23 +4,10 @@
 
 ## 🔴 Current Tasks
 
-### Dynamic Duration Formula
-Fixed 25s duration cuts off lyrics for longer passages. Implement a formula that calculates `music_length_ms` based on passage word/character count so every verse fits naturally.
-- Rule of thumb: ~1.5–2s per word as a starting estimate
-- Test against short (John 11:35), medium (Proverbs 3:5-6), and long (1 Peter 5:2-3) passages
+_No open tasks. See Phase 5 in DEV_PLAN.md for next priorities._
 
-### Radial Menu — Passage and Folder destinations
-Verse is now wired. Remaining:
-- **Passage** → multi-verse range input screen (currently routes to `/search` as placeholder)
-- **Folder** → folder creation/management screen (not yet designed)
-
-### Phase 2 Frontend — AI Song Generation
-Wire up song generation to the UI. See `ELEVENLABS_INTEGRATION.md` for backend details.
-- [ ] Add `generateSong()` to `mobile/api/bibleApi.ts`
-- [ ] Loading state UI (~12s wait)
-- [ ] Save MP3 to device (Expo FileSystem)
-- [ ] Audio playback component (play/pause/loop)
-- [ ] Style presets UI (gentle worship, hymn, upbeat, chant)
+### Completed This Session
+- ✅ Wire verse/folder/progress/streak writes to sync endpoints (write-through, fire-and-forget, `storage.ts`)
 
 ---
 
@@ -47,22 +34,74 @@ Wire up song generation to the UI. See `ELEVENLABS_INTEGRATION.md` for backend d
 
 ### Radial FAB Menu (Mar 2026)
 Added animated radial menu to the main verses page (`app/index.tsx`):
-- `+` FAB at bottom-right opens a spring-animated arc of 3 options: Verse, Passage, Folder
-- `+` rotates to `×` when open
-- Sub-buttons fan out (up, diagonal, up-left) with scale + opacity animation
-- Labels appear as frosted pills to the left of each button
-- Key bug fixed: `fabContainer` must be last in JSX render order or it gets covered by the list/empty state and taps are swallowed
+- `+` FAB opens a spring-animated arc of 3 options: Verse, Passage, New Folder
+- Sub-buttons fan out with scale + opacity animation
+- FAB moved to bottom-left per UI spec
 
 ### Add Verse Flow — Book/Chapter/Verse Picker (Mar 2026)
-Replaced the old search-based verse-add UX with a 3-step bottom-sheet modal (`AddVerseModal`):
-- **Book step**: grid of 66 square buttons (OT/NT sections) with abbreviated names
-- **Chapter step**: instant grid from hardcoded chapter counts (no API call)
-- **Verse step**: instant grid from hardcoded verse counts per chapter (1,189 values in `utils/bibleData.ts`)
-- On verse tap: single `getVerse()` API call fetches text → auto-saves to AsyncStorage → modal closes
-- Wired to the "Verse" radial FAB option in `app/index.tsx`
-
-Key design decision: all navigation is offline/instant. The API is only hit for the final verse text fetch, avoiding the previous hang caused by pre-fetching entire chapters through the backend.
+Replaced search-based verse-add UX with 3-step bottom-sheet modal (`AddVerseModal`):
+- Book/Chapter/Verse grids, fully offline navigation
+- Single API call only for final verse text fetch
 
 ### Web Dev Workflow (Mar 2026)
 - Configured `expo start --web --port 8083` for PC-based UI testing
-- Chrome DevTools mobile simulation (F12 → Ctrl+Shift+M) replaces phone-only testing
+
+### Folder System (Apr 2026)
+Full folder organization system per `UI_SPEC.md`:
+- Folders displayed as rows on home screen (above verses, with divider)
+- Folder creation via FAB → "New Folder" (name + color picker)
+- Folder detail: verse list, add verse (existing with search, or new), remove from folder
+- Folder edit (name + color) via long press → context menu
+- Folder delete (non-destructive — verses preserved) via long press → context menu
+- `folderStorage.updateFolder()` added to `utils/storage.ts`
+
+### Verse Practice Menu (Apr 2026)
+Tap a verse on home screen → bottom sheet with:
+- **Practice** → opens `verse/[id]` and auto-starts practice (`?autostart=1` param)
+- **View Verse** → opens verse detail in view mode
+- **Edit** → inline edit sheet for verse text + reference
+- **Delete** → confirmation prompt
+
+### Drag-out from Folder Detail Screen (Apr 2026)
+Long press verse in `folders/[id].tsx` → haptic + `setPendingDrag(verse, folderId)` → `router.back()`. Home screen shows move-mode banner on focus: "Moving [ref] — tap a folder or Place at Root". `DragContext` (global React context) stores pending verse + source folder ID across screens. Implemented in `context/DragContext.tsx`.
+
+### Drag Mode — Home Screen (Apr 2026)
+`VerseCard` component with `PanResponder`: hold 500ms → haptic + drag starts; quick tap → practice menu. Ghost card follows finger. Folders highlight on hover (blue border + `+` icon). Drop on folder → `addVerseToFolder`. Drag cancelled if finger moves >8px before 500ms (scroll-safe). Cross-screen drag (from folder detail) deferred.
+
+### Dynamic Duration Formula (Apr 2026)
+`calcDuration(text)` in `elevenLabsService.js`: `Math.min(38, Math.max(25, round(wordCount * 1.5)))`. Songs now scale 25–38s based on passage length. Logged with word count at generation time.
+
+### Radial Menu — Passage destination (Apr 2026)
+`AddPassageModal`: Book → Chapter → Start Verse → End Verse (4-step picker), calls `getVerseRange`, saves passage with reference like "Romans 8:1-4". Start verse shown in green on end step; verses before start disabled.
+
+### Folder Flashcard Practice (Apr 2026)
+Full flashcard session at `app/flashcards/[id].tsx`:
+- "Practice" button in folder detail header
+- Shuffled deck; each card randomly Type A (ref → verse) or Type B (verse → ref)
+- Tap to flip, Correct/Incorrect buttons advance cards
+- Progress bar (folder color), live score strip
+- Results screen: grade, %, Shuffle & Retry or Done
+
+### Unit Test Suite (Apr 2026)
+Jest test infrastructure added for mobile and backend.
+
+**Mobile** (`mobile/__tests__/utils/`) — `jest-expo` preset, AsyncStorage auto-mock, `Date.now` mock for id uniqueness:
+- `recallUtils.test.ts` — 28 tests: tokenize, tokenizeRef, getHiddenIndices, validateFirstLetters, buildAnswer
+- `bibleData.test.ts` — 18 tests: OT/NT book lists (counts, structure, uniqueness), VERSE_COUNTS integrity, getVerseCount edge cases
+- `storage.test.ts` — 53 tests: full stage/streak/mastered state machine, verse CRUD (max-10 eviction, dedup), folder CRUD, cross-folder operations
+
+**Backend** (`backend/src/__tests__/`) — Jest + supertest, services mocked:
+- `services/elevenLabsService.test.js` — 10 tests: calcDuration clamp/round behavior
+- `routes/bible.test.js` — 17 tests: verse/chapter/range routes (happy path, validation errors, service errors)
+
+Run: `npm test` in either `mobile/` or `backend/`
+Total: **126 tests, all passing**
+
+### 3-Round Practice Flow (Apr 2026)
+Individual verse practice (`app/verse/[id].tsx`) now runs all 3 rounds per session:
+- Round 1: Full verse visible, type first letter of each word
+- Round 2: Partial words hidden
+- Round 3: Verse hidden, reference hint only
+- Reference check after each round (user types reference, validated against correct value)
+- Per-round results: word accuracy % + ref correct/incorrect badge
+- Progress recorded against stage based on Round 3 performance

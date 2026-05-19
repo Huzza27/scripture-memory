@@ -1,7 +1,7 @@
 // Bible API Client
 // Connects to backend Express server
 
-const API_BASE_URL = 'http://192.168.86.126:3000/api/v1';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000/api/v1';
 
 interface Verse {
   book_id: string;
@@ -49,7 +49,178 @@ interface SongStatusResponse {
   };
 }
 
+interface AuthResponse {
+  token: string;
+  user: { id: number; email: string; username: string };
+}
+
 class BibleApi {
+  private token: string | null = null;
+
+  setToken(token: string | null) {
+    this.token = token;
+  }
+
+  isAuthenticated(): boolean {
+    return this.token !== null;
+  }
+
+  private authHeaders(): Record<string, string> {
+    return this.token ? { Authorization: `Bearer ${this.token}` } : {};
+  }
+
+  // ── Auth ────────────────────────────────────────────────────────────────────
+
+  async login(email: string, password: string): Promise<AuthResponse> {
+    const res = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || 'Login failed');
+    return data;
+  }
+
+  async getMe(): Promise<{ id: number; email: string; username: string; bio: string; created_at: string }> {
+    const res = await fetch(`${API_BASE_URL}/auth/me`, { headers: this.authHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || 'Failed to fetch profile');
+    return data.user;
+  }
+
+  async updateProfile(username: string, bio: string): Promise<{ id: number; email: string; username: string; bio: string }> {
+    const res = await fetch(`${API_BASE_URL}/auth/profile`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+      body: JSON.stringify({ username, bio }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || 'Failed to update profile');
+    return data.user;
+  }
+
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    const res = await fetch(`${API_BASE_URL}/auth/password`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error?.message || 'Failed to change password');
+    }
+  }
+
+  async register(email: string, password: string, username: string): Promise<AuthResponse> {
+    const res = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, username }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || 'Registration failed');
+    return data;
+  }
+
+  // ── Sync ────────────────────────────────────────────────────────────────────
+
+  async syncGetVerses() {
+    const res = await fetch(`${API_BASE_URL}/sync/verses`, { headers: this.authHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || 'Failed to fetch verses');
+    return data.verses;
+  }
+
+  async syncUpsertVerse(verse: Record<string, unknown>) {
+    const res = await fetch(`${API_BASE_URL}/sync/verses`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+      body: JSON.stringify(verse),
+    });
+    if (!res.ok) { const d = await res.json(); throw new Error(d.error?.message || 'Failed to save verse'); }
+  }
+
+  async syncDeleteVerse(id: string) {
+    await fetch(`${API_BASE_URL}/sync/verses/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: this.authHeaders(),
+    });
+  }
+
+  async syncBulkVerses(verses: Record<string, unknown>[]) {
+    const res = await fetch(`${API_BASE_URL}/sync/verses/bulk`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+      body: JSON.stringify({ verses }),
+    });
+    if (!res.ok) { const d = await res.json(); throw new Error(d.error?.message || 'Bulk import failed'); }
+  }
+
+  async syncGetFolders() {
+    const res = await fetch(`${API_BASE_URL}/sync/folders`, { headers: this.authHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || 'Failed to fetch folders');
+    return data.folders;
+  }
+
+  async syncUpsertFolder(folder: Record<string, unknown>) {
+    const res = await fetch(`${API_BASE_URL}/sync/folders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+      body: JSON.stringify(folder),
+    });
+    if (!res.ok) { const d = await res.json(); throw new Error(d.error?.message || 'Failed to save folder'); }
+  }
+
+  async syncDeleteFolder(id: string) {
+    await fetch(`${API_BASE_URL}/sync/folders/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: this.authHeaders(),
+    });
+  }
+
+  async syncBulkFolders(folders: Record<string, unknown>[]) {
+    const res = await fetch(`${API_BASE_URL}/sync/folders/bulk`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+      body: JSON.stringify({ folders }),
+    });
+    if (!res.ok) { const d = await res.json(); throw new Error(d.error?.message || 'Bulk folder import failed'); }
+  }
+
+  async syncGetProgress() {
+    const res = await fetch(`${API_BASE_URL}/sync/progress`, { headers: this.authHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || 'Failed to fetch progress');
+    return data.progress;
+  }
+
+  async syncUpsertProgress(verseId: string, progress: Record<string, unknown>) {
+    const res = await fetch(`${API_BASE_URL}/sync/progress/${encodeURIComponent(verseId)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+      body: JSON.stringify(progress),
+    });
+    if (!res.ok) { const d = await res.json(); throw new Error(d.error?.message || 'Failed to save progress'); }
+  }
+
+  async syncGetStreak() {
+    const res = await fetch(`${API_BASE_URL}/sync/streak`, { headers: this.authHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || 'Failed to fetch streak');
+    return data.streak;
+  }
+
+  async syncUpsertStreak(streak: Record<string, unknown>) {
+    const res = await fetch(`${API_BASE_URL}/sync/streak`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+      body: JSON.stringify(streak),
+    });
+    if (!res.ok) { const d = await res.json(); throw new Error(d.error?.message || 'Failed to save streak'); }
+  }
+
   /**
    * Fetch a verse by reference (e.g., "John 3:16")
    */
@@ -139,14 +310,15 @@ class BibleApi {
         throw new Error('Failed to generate song');
       }
 
-      // Convert MP3 to base64 data URI (persistent, works on web + native)
-      const blob = await response.blob();
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
+      // Convert MP3 to base64 data URI — works on both web and native (no FileReader)
+      const arrayBuffer = await response.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+      let binary = '';
+      const CHUNK = 8192;
+      for (let i = 0; i < bytes.length; i += CHUNK) {
+        binary += String.fromCharCode(...(bytes.subarray(i, i + CHUNK) as unknown as number[]));
+      }
+      return `data:audio/mpeg;base64,${btoa(binary)}`;
     } catch (error) {
       console.error('Song generation error:', error);
       throw error;

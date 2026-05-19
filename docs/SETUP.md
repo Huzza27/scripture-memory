@@ -32,7 +32,23 @@ npx expo start --web --port 8083  # Web browser (dev)
 **`backend/.env`** (required):
 ```bash
 ELEVEN_API_KEY=sk_...
+JWT_SECRET=change_me_before_deploy
+DATABASE_URL=postgresql://postgres.faiuieepdkcyajbrtmnd:[PASSWORD]@aws-1-us-west-2.pooler.supabase.com:5432/postgres
 ```
+
+**Supabase:** Project `faiuieepdkcyajbrtmnd` (us-west-2). Session pooler URL above. Schema in `backend/src/database/schema.sql`.
+
+---
+
+## Test Account
+
+| Field | Value |
+|---|---|
+| Email | `test@scripture.app` |
+| Password | `test` |
+| Username | `test` |
+
+(Min password length is 4 in dev — raise to 8 before release.)
 
 ---
 

@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, Alert } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { folderStorage, Folder } from "../utils/storage";
@@ -31,38 +31,50 @@ export default function Folders() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+    <View className="flex-1 bg-white">
+      <View className="flex-row items-center pt-[60px] px-4 pb-4 bg-[#f9f9f9] border-b border-[#eee]">
+        <TouchableOpacity onPress={() => router.back()} className="p-1 mr-2">
           <Ionicons name="arrow-back" size={22} color="#007AFF" />
         </TouchableOpacity>
-        <Text style={styles.title}>Folders</Text>
-        <TouchableOpacity onPress={() => setCreateVisible(true)} style={styles.addBtn}>
+        <Text className="flex-1 text-[22px] font-bold">Folders</Text>
+        <TouchableOpacity onPress={() => setCreateVisible(true)} className="p-1">
           <Ionicons name="add" size={26} color="#007AFF" />
         </TouchableOpacity>
       </View>
 
       {folders.length === 0 ? (
-        <View style={styles.empty}>
+        <View className="flex-1 items-center justify-center">
           <Ionicons name="folder-outline" size={64} color="#ccc" />
-          <Text style={styles.emptyText}>No folders yet</Text>
-          <TouchableOpacity style={styles.createBtn} onPress={() => setCreateVisible(true)}>
-            <Text style={styles.createBtnText}>Create Folder</Text>
+          <Text className="text-lg mt-3 mb-5" style={{ color: "#aaa" }}>No folders yet</Text>
+          <TouchableOpacity
+            className="bg-[#007AFF] rounded-xl py-3 px-6"
+            onPress={() => setCreateVisible(true)}
+          >
+            <Text className="text-white text-base font-semibold">Create Folder</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <FlatList
           data={folders}
           keyExtractor={f => f.id}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={{ padding: 16 }}
           renderItem={({ item }) => (
-            <TouchableOpacity style={styles.card} onPress={() => router.push(`/folders/${item.id}`)}>
-              <View style={[styles.colorBar, { backgroundColor: item.color }]} />
-              <View style={styles.cardContent}>
-                <Text style={styles.folderName}>{item.name}</Text>
-                <Text style={styles.verseCount}>{item.verseIds.length} {item.verseIds.length === 1 ? "verse" : "verses"}</Text>
+            <TouchableOpacity
+              className="flex-row items-center bg-[#f9f9f9] rounded-xl mb-3 overflow-hidden"
+              onPress={() => router.push(`/folders/${item.id}`)}
+            >
+              <View className="w-1.5 self-stretch" style={{ backgroundColor: item.color }} />
+              <View className="flex-1 p-4">
+                <Text className="text-base font-semibold" style={{ color: "#222" }}>{item.name}</Text>
+                <Text className="text-sm mt-0.5" style={{ color: "#888" }}>
+                  {item.verseIds.length} {item.verseIds.length === 1 ? "verse" : "verses"}
+                </Text>
               </View>
-              <TouchableOpacity onPress={() => handleDelete(item)} style={styles.deleteBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <TouchableOpacity
+                onPress={() => handleDelete(item)}
+                className="p-3"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
                 <Ionicons name="trash-outline" size={18} color="#c00" />
               </TouchableOpacity>
               <Ionicons name="chevron-forward" size={16} color="#ccc" />
@@ -79,30 +91,3 @@ export default function Folders() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  header: {
-    flexDirection: "row", alignItems: "center",
-    paddingTop: 60, paddingHorizontal: 16, paddingBottom: 16,
-    backgroundColor: "#f9f9f9", borderBottomWidth: 1, borderBottomColor: "#eee",
-  },
-  backBtn: { padding: 4, marginRight: 8 },
-  title: { flex: 1, fontSize: 22, fontWeight: "700" },
-  addBtn: { padding: 4 },
-  empty: { flex: 1, alignItems: "center", justifyContent: "center" },
-  emptyText: { fontSize: 17, color: "#aaa", marginTop: 12, marginBottom: 20 },
-  createBtn: { backgroundColor: "#007AFF", borderRadius: 12, paddingVertical: 12, paddingHorizontal: 24 },
-  createBtnText: { color: "#fff", fontSize: 15, fontWeight: "600" },
-  list: { padding: 16 },
-  card: {
-    flexDirection: "row", alignItems: "center",
-    backgroundColor: "#f9f9f9", borderRadius: 12,
-    marginBottom: 12, overflow: "hidden",
-  },
-  colorBar: { width: 6, alignSelf: "stretch" },
-  cardContent: { flex: 1, padding: 16 },
-  folderName: { fontSize: 16, fontWeight: "600", color: "#222" },
-  verseCount: { fontSize: 13, color: "#888", marginTop: 2 },
-  deleteBtn: { padding: 12 },
-});
