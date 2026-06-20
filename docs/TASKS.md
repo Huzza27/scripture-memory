@@ -4,10 +4,30 @@
 
 ## 🔴 Current Tasks
 
-_No open tasks. See Phase 5 in DEV_PLAN.md for next priorities._
+_No open tasks._
 
-### Completed This Session
-- ✅ Wire verse/folder/progress/streak writes to sync endpoints (write-through, fire-and-forget, `storage.ts`)
+---
+
+### Completed This Session (Jun 2026)
+- ✅ Topographical scheduling system (Daily → Weekly → Monthly stages)
+- ✅ `MoveSuggestionBanner` + `StagePickerModal` components
+- ✅ Home screen "Due Today" replaces legacy multi-day schedule filter
+- ✅ Android fix: `PracticePickerSheet` rewritten with `animationType="slide"`
+- ✅ Android fix: `folders/[id].tsx` useFocusEffect async leak
+- ✅ Android fix: hidden TextInput keyboard (`opacity-0` → off-screen)
+
+### Android Compatibility Audit (Jun 2026)
+Full fix log: `docs/ANDROID_FIXES.md`
+- ✅ `btoa()` crash on song gen — platform-safe base64 + expo-file-system
+- ✅ Dev auth bypass removed from `AuthContext`
+- ✅ `maxHeight` on sheets → explicit `height` (3 components)
+- ✅ `Dimensions.get()` → `useWindowDimensions()` (3 components)
+- ✅ `SafeAreaView` → `useSafeAreaInsets()` (`BookPickerModal`, `AddVerseModal`)
+- ✅ Animated backdrop restructured — touch area separated from visual overlay (3 components)
+- ✅ `KeyboardAvoidingView` Android behavior — `'height'` in `login.tsx`, `account.tsx`
+- ✅ Hardcoded colors → `useTheme()` in 8 files (`practice`, `search`, `folders`, `stats`, `SongPlayer`, `StylePickerModal`, `TranslationPicker`, `BookPickerModal`)
+- ✅ `useNativeDriver: Platform.OS !== 'web'` across 8 animated files
+- ✅ `scrollIndicatorInsets` on FlatLists; `text-[9px]`/`text-[10px]` → explicit style props
 
 ---
 

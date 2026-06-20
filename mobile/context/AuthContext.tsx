@@ -47,8 +47,7 @@ interface AuthContextValue extends AuthState {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // DEV: bypass auth — remove before production
-  const [state, setState] = useState<AuthState>({ token: 'dev-bypass', user: { id: 0, email: 'dev@test.com', username: 'dev', bio: '' }, loading: false });
+  const [state, setState] = useState<AuthState>({ token: null, user: null, loading: true });
 
   useEffect(() => {
     (async () => {

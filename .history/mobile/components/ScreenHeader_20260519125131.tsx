@@ -1,0 +1,28 @@
+import { View, Text, ViewStyle, TouchableOpacity } from "react-native";
+import { type } from "../utils/typography";
+import { useTheme } from "../utils/theme";
+
+interface ScreenHeaderProps {
+  title: string;
+  subtitle?: string;
+  rightAction?: React.ReactNode;
+  style?: ViewStyle;
+}
+
+export default function ScreenHeader({ title, subtitle, rightAction, style }: ScreenHeaderProps) {
+  const theme = useTheme();
+
+  return (
+    <View
+      className="pt-[20px] px-3 pb-5 border-b"
+      style={[{ backgroundColor: theme.surface, borderBottomColor: theme.border }, style]}
+    >
+      <View className="flex-row items-end justify-between">
+        <TouchableOpacity>
+          <View className="rounded-full bg-black w-16 h-16">
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}

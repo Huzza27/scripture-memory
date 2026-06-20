@@ -268,6 +268,14 @@ export const streakStorage = {
   },
 };
 
+export type VerseStage = "daily" | "weekly" | "monthly";
+
+export interface MoveSuggestion {
+  suggestedStage: "weekly" | "monthly";
+  suggestedAt: string;  // ISO timestamp
+  dismissed?: boolean;
+}
+
 export interface SavedVerse {
   id: string;
   reference: string;
@@ -276,44 +284,59 @@ export interface SavedVerse {
   savedAt: string;
   songUri?: string;
   songStyle?: string;
-  schedule?: number[]; // days to practice: 0=Sun, 1=Mon, …, 6=Sat. undefined = no schedule.
+  schedule?: number[]; // legacy field — no longer used for scheduling
+
+  // Topographical scheduling
+  stage: VerseStage;
+  addedToDailyAt: string;
+  addedToWeeklyAt?: string;
+  addedToMonthlyAt?: string;
+  scheduledDayOfWeek?: number;   // 0–6 (Sun–Sat), used when stage === "weekly"
+  scheduledDayOfMonth?: number;  // 1–31, used when stage === "monthly"
+  moveSuggestion?: MoveSuggestion;
 }
 
 export const verseStorage = {
-  /**
-   * Get all saved verses
-   */
   async getSavedVerses(): Promise<SavedVerse[]> {
     try {
       const data = await AsyncStorage.getItem(STORAGE_KEY);
-      return data ? JSON.parse(data) : [];
+      const verses: SavedVerse[] = data ? JSON.parse(data) : [];
+      // Migrate old verses that predate the topographical scheduling system
+      let needsWrite = false;
+      const migrated = verses.map(v => {
+        if (!(v as any).stage) {
+          needsWrite = true;
+          return { ...v, stage: "daily" as VerseStage, addedToDailyAt: v.savedAt };
+        }
+        return v;
+      });
+      if (needsWrite) {
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      }
+      return migrated;
     } catch (error) {
       console.error('Error loading saved verses:', error);
       return [];
     }
   },
 
-  /**
-   * Save a new verse (max 10, removes oldest if needed)
-   */
-  async saveVerse(verse: Omit<SavedVerse, 'id' | 'savedAt'>): Promise<void> {
+  async saveVerse(verse: Omit<SavedVerse, 'id' | 'savedAt' | 'stage' | 'addedToDailyAt'>): Promise<void> {
     try {
       const saved = await this.getSavedVerses();
 
-      // Check if already saved
       const exists = saved.find(v => v.reference === verse.reference);
       if (exists) return;
 
-      // Create new verse with ID and timestamp
+      const now = new Date().toISOString();
       const newVerse: SavedVerse = {
         ...verse,
         id: Date.now().toString(),
-        savedAt: new Date().toISOString(),
+        savedAt: now,
+        stage: "daily",
+        addedToDailyAt: now,
       };
 
-      // Add to beginning of array (most recent first)
       const updated = [newVerse, ...saved];
-
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       syncService.verse.upsert(newVerse);
     } catch (error) {
@@ -353,9 +376,80 @@ export const verseStorage = {
     }
   },
 
-  /**
-   * Clear all saved verses
-   */
+  /** Returns all verses that should appear in today's practice queue. */
+  getVersesDueToday(verses: SavedVerse[]): SavedVerse[] {
+    const now = new Date();
+    const todayDay = now.getDay();
+    const todayDate = now.getDate();
+    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+
+    return verses.filter(v => {
+      if (v.stage === "daily") return true;
+      if (v.stage === "weekly") return v.scheduledDayOfWeek === todayDay;
+      if (v.stage === "monthly") {
+        const scheduled = v.scheduledDayOfMonth ?? 1;
+        if (scheduled === todayDate) return true;
+        // If scheduled day > days in month, show on last day
+        if (scheduled > lastDayOfMonth && todayDate === lastDayOfMonth) return true;
+      }
+      return false;
+    });
+  },
+
+  /** Check all verses and create move suggestions where criteria are met. */
+  async checkMoveSuggestions(): Promise<void> {
+    const verses = await this.getSavedVerses();
+    const now = new Date();
+    const daysSince = (iso: string) =>
+      Math.floor((now.getTime() - new Date(iso).getTime()) / 86400000);
+
+    let changed = false;
+    const updated = verses.map(v => {
+      // Skip if suggestion already exists (active or dismissed)
+      if (v.moveSuggestion) return v;
+
+      if (v.stage === "daily" && daysSince(v.addedToDailyAt) >= 60) {
+        changed = true;
+        return { ...v, moveSuggestion: { suggestedStage: "weekly" as const, suggestedAt: now.toISOString() } };
+      }
+      if (v.stage === "weekly" && v.addedToWeeklyAt && daysSince(v.addedToWeeklyAt) >= 60) {
+        changed = true;
+        return { ...v, moveSuggestion: { suggestedStage: "monthly" as const, suggestedAt: now.toISOString() } };
+      }
+      return v;
+    });
+
+    if (changed) {
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    }
+  },
+
+  /** Accept a move suggestion — moves verse to the new stage on the chosen day. */
+  async moveToStage(id: string, stage: "weekly" | "monthly", scheduledDay: number): Promise<void> {
+    const verses = await this.getSavedVerses();
+    const now = new Date().toISOString();
+    const updated = verses.map(v => {
+      if (v.id !== id) return v;
+      const base = { ...v, stage, moveSuggestion: undefined };
+      if (stage === "weekly") return { ...base, addedToWeeklyAt: now, scheduledDayOfWeek: scheduledDay };
+      return { ...base, addedToMonthlyAt: now, scheduledDayOfMonth: scheduledDay };
+    });
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    const v = updated.find(x => x.id === id);
+    if (v) syncService.verse.upsert(v);
+  },
+
+  /** Dismiss a move suggestion — won't be shown again for this transition. */
+  async dismissMoveSuggestion(id: string): Promise<void> {
+    const verses = await this.getSavedVerses();
+    const updated = verses.map(v =>
+      v.id === id && v.moveSuggestion
+        ? { ...v, moveSuggestion: { ...v.moveSuggestion, dismissed: true } }
+        : v
+    );
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  },
+
   async clearAll(): Promise<void> {
     try {
       await AsyncStorage.removeItem(STORAGE_KEY);

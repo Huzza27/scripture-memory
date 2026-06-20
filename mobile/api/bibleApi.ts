@@ -1,7 +1,28 @@
 // Bible API Client
-// Connects to backend Express server
+// Verse fetching calls bible-api.com directly (no backend required).
+// Song generation still routes through the backend (ElevenLabs API key lives there).
+
+import { Platform } from 'react-native';
+import * as FileSystem from 'expo-file-system';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000/api/v1';
+const BIBLE_API_URL = 'https://bible-api.com';
+
+// Platform-safe base64 encoder (btoa is web-only)
+function uint8ArrayToBase64(bytes: Uint8Array): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  let result = '';
+  for (let i = 0; i < bytes.length; i += 3) {
+    const b0 = bytes[i];
+    const b1 = i + 1 < bytes.length ? bytes[i + 1] : 0;
+    const b2 = i + 2 < bytes.length ? bytes[i + 2] : 0;
+    result += chars[b0 >> 2];
+    result += chars[((b0 & 3) << 4) | (b1 >> 4)];
+    result += i + 1 < bytes.length ? chars[((b1 & 15) << 2) | (b2 >> 6)] : '=';
+    result += i + 2 < bytes.length ? chars[b2 & 63] : '=';
+  }
+  return result;
+}
 
 interface Verse {
   book_id: string;
@@ -222,19 +243,31 @@ class BibleApi {
   }
 
   /**
+   * Fetch verse text directly from bible-api.com (no backend required).
+   */
+  private async fetchFromBibleApi(reference: string, translation: string): Promise<BibleResponse> {
+    const url = `${BIBLE_API_URL}/${encodeURIComponent(reference)}?translation=${translation}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Failed to fetch: ${reference}`);
+    const raw = await response.json();
+    return {
+      success: true,
+      data: {
+        reference: raw.reference,
+        verses: raw.verses,
+        text: raw.text,
+        translation: raw.translation_id || translation,
+        translationName: raw.translation_name,
+      },
+    };
+  }
+
+  /**
    * Fetch a verse by reference (e.g., "John 3:16")
    */
   async getVerse(reference: string, translation: string = 'kjv'): Promise<BibleResponse> {
     try {
-      const url = `${API_BASE_URL}/bible/verse/${encodeURIComponent(reference)}?translation=${translation}`;
-      const response = await fetch(url);
-      const data: BibleResponse = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error?.message || 'Failed to fetch verse');
-      }
-
-      return data;
+      return await this.fetchFromBibleApi(reference, translation);
     } catch (error) {
       console.error('Bible API error:', error);
       throw error;
@@ -246,15 +279,7 @@ class BibleApi {
    */
   async getChapter(book: string, chapter: number, translation: string = 'kjv'): Promise<BibleResponse> {
     try {
-      const url = `${API_BASE_URL}/bible/chapter/${encodeURIComponent(book)}/${chapter}?translation=${translation}`;
-      const response = await fetch(url);
-      const data: BibleResponse = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error?.message || 'Failed to fetch chapter');
-      }
-
-      return data;
+      return await this.fetchFromBibleApi(`${book} ${chapter}`, translation);
     } catch (error) {
       console.error('Bible API error:', error);
       throw error;
@@ -272,15 +297,7 @@ class BibleApi {
     translation: string = 'kjv'
   ): Promise<BibleResponse> {
     try {
-      const url = `${API_BASE_URL}/bible/range/${encodeURIComponent(book)}/${chapter}/${startVerse}/${endVerse}?translation=${translation}`;
-      const response = await fetch(url);
-      const data: BibleResponse = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error?.message || 'Failed to fetch verse range');
-      }
-
-      return data;
+      return await this.fetchFromBibleApi(`${book} ${chapter}:${startVerse}-${endVerse}`, translation);
     } catch (error) {
       console.error('Bible API error:', error);
       throw error;
@@ -310,15 +327,24 @@ class BibleApi {
         throw new Error('Failed to generate song');
       }
 
-      // Convert MP3 to base64 data URI — works on both web and native (no FileReader)
       const arrayBuffer = await response.arrayBuffer();
       const bytes = new Uint8Array(arrayBuffer);
-      let binary = '';
-      const CHUNK = 8192;
-      for (let i = 0; i < bytes.length; i += CHUNK) {
-        binary += String.fromCharCode(...(bytes.subarray(i, i + CHUNK) as unknown as number[]));
+
+      if (Platform.OS === 'web') {
+        // Web: btoa is available
+        let binary = '';
+        const CHUNK = 8192;
+        for (let i = 0; i < bytes.length; i += CHUNK) {
+          binary += String.fromCharCode(...(bytes.subarray(i, i + CHUNK) as unknown as number[]));
+        }
+        return `data:audio/mpeg;base64,${btoa(binary)}`;
       }
-      return `data:audio/mpeg;base64,${btoa(binary)}`;
+
+      // Native (Android/iOS): btoa is not available — write to a temp file and return file URI
+      const base64 = uint8ArrayToBase64(bytes);
+      const path = `${FileSystem.cacheDirectory}song_${Date.now()}.mp3`;
+      await FileSystem.writeAsStringAsync(path, base64, { encoding: FileSystem.EncodingType.Base64 });
+      return path;
     } catch (error) {
       console.error('Song generation error:', error);
       throw error;

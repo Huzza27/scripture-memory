@@ -5,6 +5,7 @@ module.exports = function (api) {
     presets: [['babel-preset-expo'], 'nativewind/babel'],
 
     plugins: [
+      'react-native-worklets/plugin',
       [
         'module-resolver',
         {
@@ -16,7 +17,6 @@ module.exports = function (api) {
           },
         },
       ],
-      'react-native-worklets/plugin',
     ],
   };
 };
