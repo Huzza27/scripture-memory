@@ -1,17 +1,11 @@
-import { Stack } from "expo-router";
-import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
-import { PreferencesProvider } from "../context/PreferencesContext";
-import { AuthProvider } from "../context/AuthContext";
-import "@/global.css";
+import { Stack } from 'expo-router'
+import { useFonts, Lora_400Regular, Lora_600SemiBold, Lora_700Bold } from '@expo-google-fonts/lora'
+import "../global.css"
 
 export default function RootLayout() {
-  return (
-    <PreferencesProvider>
-      <AuthProvider>
-        <GluestackUIProvider mode="dark">
-          <Stack screenOptions={{ headerShown: false }} />
-        </GluestackUIProvider>
-      </AuthProvider>
-    </PreferencesProvider>
-  );
+  const [fontsLoaded] = useFonts({ Lora_400Regular, Lora_600SemiBold, Lora_700Bold })
+
+  if (!fontsLoaded) return null
+
+  return <Stack screenOptions={{ headerShown: false }} />
 }

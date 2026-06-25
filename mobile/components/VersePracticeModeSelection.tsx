@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { Modal, View, Text, TouchableOpacity } from 'react-native'
 import Animated, { useSharedValue, withTiming, useAnimatedStyle, runOnJS } from 'react-native-reanimated'
-
 interface Props {
   visible: boolean
   verse: string
   translation: string
+  onPractice: () => void
+  onFlashcards: () => void
   onClose: () => void
 }
 
-const VersePracticeModeSelection = ({ visible, verse, translation, onClose }: Props) => {
+const VersePracticeModeSelection = ({ visible, verse, translation, onClose, onPractice, onFlashcards }: Props) => {
   const [mounted, setMounted] = useState(false)
   const translateY = useSharedValue(400)
 
@@ -30,13 +31,14 @@ const VersePracticeModeSelection = ({ visible, verse, translation, onClose }: Pr
 
   if (!mounted) return null
 
+
   return (
     <Modal visible={mounted} transparent animationType="none">
       <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
         <TouchableOpacity className="flex-1" activeOpacity={1} onPress={onClose} />
         <Animated.View style={animatedSheet} className="bg-surface rounded-t-xl p-6">
           <Text className="text-muted text-xs tracking-widest mb-4">{verse} · {translation}</Text>
-          <TouchableOpacity className="bg-accent rounded-md items-center py-3 mb-3">
+          <TouchableOpacity className="bg-accent rounded-md items-center py-3 mb-3" onPress={onFlashcards}>
             <Text className="text-muted text-sm">PRACTICE</Text>
           </TouchableOpacity>
           <TouchableOpacity className="bg-primary rounded-md items-center py-3">

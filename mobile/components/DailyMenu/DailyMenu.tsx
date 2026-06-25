@@ -6,15 +6,19 @@ import { Ionicons } from "@expo/vector-icons";
 import { styles } from './DailyMenu.styles';
 import DailyVerseCard from './DailyVerseCard';
 import VersePracticeModeSelection from '../VersePracticeModeSelection';
+import { Verse } from '../../types/Verse';
+import { useRouter } from 'expo-router';
 
 
 
 const DailyMenu = () => {
 
   const [toggleVerses, setToggleVerses] = useState(false);
-  const [selectedVerse, setSelectedVerse] = useState<{ verse: string; translation: string } | null>(null);
+  const [selectedVerse, setSelectedVerse] = useState<Verse | null>(null);
+  const [togglePracticeTypeMenu, setTogglePracticeTypeMenu] = useState(false)
   const rotation = useSharedValue(0);
   const calendarScale = useSharedValue(1);
+  const router = useRouter()
 
   const animatedArrow = useAnimatedStyle(() => ({
     transform: [{ rotate: `${rotation.value}deg` }],
@@ -31,7 +35,14 @@ const DailyMenu = () => {
     setToggleVerses(prev => !prev);
   };
 
+ const handleVersePress = (verse: Verse) => {
+    setSelectedVerse(verse)
+    router.push(`/practice/${verse.id}`)
+ }
 
+ const handlePracticeAll = () => {
+  setTogglePracticeTypeMenu(!togglePracticeTypeMenu)
+ }
 
   return (
     <View className='w-full pt-5 px-4'>
@@ -60,7 +71,7 @@ const DailyMenu = () => {
       {toggleVerses &&
       <View className='' style={styles.practiceItem}>
         <View className='py-3 px-4'>
-          <TouchableOpacity className='bg-primary rounded items-center'>
+          <TouchableOpacity className='bg-primary rounded items-center' onPress={handlePracticeAll}>
             <Text className='py-2 color-muted text-xs'>
               PRACTICE ALL
             </Text>
@@ -70,18 +81,19 @@ const DailyMenu = () => {
       }
       {toggleVerses &&
       <View className='' style={styles.practiceItem}>
-        <DailyVerseCard verse="JOHN 3:16" translation='NIV' onPress={() => setSelectedVerse({ verse: 'JOHN 3:16', translation: 'NIV' })}/>
-        <DailyVerseCard verse="John 3:16" translation='NIV' onPress={() => setSelectedVerse({ verse: 'John 3:16', translation: 'NIV' })}/>
-        <DailyVerseCard verse="John 3:16" translation='NIV' onPress={() => setSelectedVerse({ verse: 'John 3:16', translation: 'NIV' })}/>
-        <DailyVerseCard verse="John 3:16" translation='NIV' onPress={() => setSelectedVerse({ verse: 'John 3:16', translation: 'NIV' })}/>
+        <DailyVerseCard verse="JOHN 3:16" translation='NIV' onPress={handleVersePress}/>
+        <DailyVerseCard verse="John 3:16" translation='NIV' onPress={handleVersePress}/>
+        <DailyVerseCard verse="John 3:16" translation='NIV' onPress={handleVersePress}/>
+        <DailyVerseCard verse="John 3:16" translation='NIV' onPress={handleVersePress}/>
       </View>
       }
       <VersePracticeModeSelection
-        visible={selectedVerse !== null}
-        verse={selectedVerse?.verse ?? ''}
+        visible={togglePracticeTypeMenu}
+        verse={selectedVerse?.reference ?? ''}
         translation={selectedVerse?.translation ?? ''}
-        onClose={() => setSelectedVerse(null)}
-      />
+        onClose={() => setTogglePracticeTypeMenu(false)}
+        onPractice={() => {}}
+        onFlashcards={() => {}}      />
     </View>
   )
 }
