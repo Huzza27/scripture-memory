@@ -1,3 +1,8 @@
+// DAILY MENU STYLES — components/DailyMenu/DailyMenu.styles.ts
+// StyleSheet for DailyMenu.tsx and DailyVerseCard.tsx.
+// Used for styles that can't be expressed cleanly in Tailwind/NativeWind,
+// such as partial borders (borderTopWidth: 0) and radius on specific corners.
+
 import { StyleSheet } from "react-native";
 import { Colors } from "../../constants/colors";
 

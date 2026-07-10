@@ -1,7 +1,7 @@
 # Codebase Review — Scripture Memory Mobile
-**Date:** 2026-06-25
+**Date:** 2026-07-10 *(updated)*
 **Reviewer:** Sambo (AI)
-**Overall Grade: D+** *(normal for early prototype)*
+**Overall Grade: C** *(steady progress on UI and routing)*
 
 ---
 
@@ -9,13 +9,37 @@
 
 | Category | Grade | Summary |
 |---|---|---|
-| Architecture & Structure | C | Router setup good, no state management or API layer |
-| TypeScript | B- | Strict mode on, incomplete types and annotations |
-| Component Design | C+ | DailyMenu bloated, hardcoded data, dead callbacks |
-| State Management | D | All local useState, no persistence, no shared state |
-| Styling Consistency | F | Three approaches mixed simultaneously |
-| Bugs & Issues | D | Logic errors, empty callbacks, missing tailwind tokens |
-| Completeness | D- | No backend, no error handling, no tests, practice screen is a stub |
+| Architecture & Structure | C+ | Expo Router solid; Pack type + factory added; Packs route wired |
+| TypeScript | B- | Pack.ts + Verse.ts typed; some inline `as string` casts remain |
+| Component Design | B- | DailyMenu refactored (groupBy, useState packList); TopBar componentized |
+| State Management | D | Still all local useState; no persistence yet |
+| Styling Consistency | C+ | NativeWind dominant; safelist added for spacing tokens; mixed inline still exists |
+| Bugs & Issues | C | Filter wiring fixed; groupBy logic correct; hook placement errors resolved |
+| Completeness | D | Packs detail page built; practice screen still stub; no backend |
+
+---
+
+## Session Progress (2026-07-10)
+
+### Added
+- `types/Pack.ts` — `Pack` interface + `createPack()` factory
+- `app/packs/[id].tsx` — Full pack detail page (back nav, stats row, verse list, footer)
+- `components/Packs/PackVerse.tsx` — Per-verse row (reference, translation badge, timing, status)
+- `components/TopBar/TopBar1-5.tsx` + `TopBarSwitcher.tsx` — Modular top bar variants
+- `components/Filter/FilterButton.tsx` — Standalone filter button component
+- Tailwind safelist for spacing tokens 6–24 (px, py, m, w, h, gap)
+
+### Changed
+- `DailyMenu.tsx` — `packList` promoted to `useState`; added `groupBy(key)` helper; filter wiring via `handlePackFilter(filter)`; pack grid uses `flexWrap` + `width: '47%'`
+- `tailwind.config.js` — safelist regex patterns for spacing above 5
+- Pack route navigation: `JSON.stringify(pack)` passed as `data` param; `JSON.parse` on receive
+
+### Resolved Issues
+- Dynamic Tailwind class purging (spacing > 5) → safelist fix
+- `useLocalSearchParams` called outside component body → moved inside
+- `Duplicate declaration "Pack"` (component name vs type import) → renamed to `PackView`
+- Empty `translation={}` JSX attribute → `translation={verse.translation}`
+- `flex-1` collapsing pack cards → switched to `minHeight: 150`
 
 ---
 

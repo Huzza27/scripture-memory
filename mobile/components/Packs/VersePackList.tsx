@@ -1,7 +1,7 @@
 import React from 'react'
 import { TouchableOpacity, View, Text } from 'react-native'
-import { Verse } from '../types/Verse'
-import { Pack } from '../types/Pack'
+import { Verse } from '../../types/Verse'
+import { Pack } from '../../types/Pack'
 
 interface props {
     title: string

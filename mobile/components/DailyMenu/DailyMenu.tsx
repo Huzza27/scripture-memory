@@ -24,7 +24,7 @@ import VersePracticeModeSelection from '../VersePracticeModeSelection';
 import { Verse } from '../../types/Verse';
 import { useRouter } from 'expo-router';
 import Filter from '../Filter/Filter';
-import VersePackList from '../VersePackList';
+import VersePackList from '../Packs/VersePackList';
 import { createPack, Pack } from '../../types/Pack';
 
 
@@ -87,7 +87,7 @@ const DailyMenu = () => {
   }
 
   const handlePackPress = (pack: Pack) => {
-    router.push(`/packs/${pack.id}`)
+    router.push({ pathname: `/packs/${pack.id}`, params: { data: JSON.stringify(pack) } })
   }
 
   // Tapping "PRACTICE ALL" → open the bottom sheet to choose practice mode
@@ -135,7 +135,7 @@ const DailyMenu = () => {
     else if (filter === FilterType.Month)       groupBy('month')
   }
   return (
-    <View className='w-full pt-5 px-4'>
+    <View className='w-full px-4'>
 
       {/* ── Collapsible header row ── */}
       <TouchableOpacity className={`w-full bg-accent ${toggleVerses ? 'rounded-t-md' : 'rounded-md'}`} onPress={handleToggle} activeOpacity={0.8}>
